@@ -1,0 +1,166 @@
+The project regomax contains C++ code to compute the reduced Google matrix 
+using the REGOMAX algorithm. The mathematical basics and the 
+description of this algortihm are given in the following references:
+
+[1] Frahm K.M. and Shepelyansky D.L.,Reduced Google matrix, 
+  arXiv:1602.02394 [physics.soc] (2016).
+[2] Frahm K.M., Jaffres-Runser K. and Shepelyansky D.L.,
+  Wikipedia mining of hidden links between political leaders,
+  Eur. Phys. J. B {\bf 89} (2016) 269, arXiv:1609.01948 [cs.SI] (2016).
+[3] Frahm K.M., El Zant S., Jaffres-Runser K. and Shepelyansky D.L.,
+  Multi-cultural Wikipedia mining of geopolitics interactions leveraging 
+  reduced Google matrix analysis, Phys. Lett. A {\bf 381} (2017) 2677,
+  arXiv:1612.07920 [cs.SI] (2016). 
+
+
+To compile one needs simply to use the command:
+./compile.sh
+
+which will compile 6 binaries in the subfolder TEST (if present) or in 
+the actual folder (if there is no subfolder TEST). This script uses by 
+default the g++ compiler available in any reasonable Linux system. The C++ 
+code uses typical classes and templates but nothing that requires a very 
+recent compiler, i.e. a compiler using rather old C++ standards should do 
+nicely (probably g++ of any Linux system since 2010, maybe even before that). 
+Two of the binaries are compiled using openmp which might require a slightly 
+more recent g++ version (last 5-6 years should be okay, probably also a bit 
+older than this). The intel C++ compiler should also work (requires a slight 
+modification of the script compile.sh) but has only been tested with the 
+rather old version 8. 
+
+--------------------------
+The files represent:
+
+(i) *.cc programms:
+
+net_greduced.cc -> main program to compute the reduced Google matrix
+
+net_testgreduced.cc-> test program for small networks with comparison 
+  of direct full matrix operations, especially full matrix inversion. This 
+  programm gives numerical proof that the alogrithm works correctly (within 
+  small numerical errors).
+
+These first two programs will be compiled normally (as *.out) and as openmp 
+versions (as *_omp.out). Both programs asks for input parameters but they 
+should be used with corresponding run-script (see below). 
+
+net_testgooglematrix.cc -> program that verifies if a given matrix data 
+  file (or sum of different matrix files) respects the symmetries of the 
+  Google matrix (column sum normalization). (list of matrix files as command 
+  line parameters)
+
+net_bin_trans.cc -> allows to transform a netfile from ascii to 
+  bin file more efficient for later reading (see below for more details, 
+  list of network ascii files as parameters).
+
+The last two programs will be compiled only normally (openmp compilation works 
+but has no effect).
+
+(ii) *.h include files:
+
+network_class.h -> a general class for google matrix networks (strongly 
+  based on the vector template of vec.h for many members)
+  if the macro USE_PROBS is defined it will also store transition probablities 
+  for each link (defaut undefined => transition probabilities are given by 
+  inverse link number per column).
+
+net_Greduced_code.h -> the main code to compute the reduced google matrix
+  if the macro ITER_MODE is defined (default defined in the script compile.sh)
+  it will use a certain type of iterative algorithm to compute a matrix 
+  geometrical series (applied to a given vector v):
+
+#ifndef ITER_MODE
+// implementation with power series mode:
+// s=(\sum_{n=0}^\infty g^n)]v
+// using: s_0=v, f_0=v: and f_{n+1}=g f_n,  s_{n+1}=s_n+f_{n+1}
+// with g= \bar G_{ss}
+// convergence when s_{n+1}=s_n which will allways happen, typically 
+// at 200-210 iterations for alpha=0.85
+#else 
+// implementation with a modified iteration mode:
+// s=(\sum_{n=0}^\infty g^n)]v
+// using: s_0=v, s_{n+1}=v+g*s_n
+// with g= \bar G_{ss}
+// convergence when s_{n+1}-s_n is sufficiently "small" (using one-norm but 
+// also a metric of relativ modifications) or does no longer improve 
+// significantly, typically at 155-170 iterations for alpha=0.85
+#end
+
+Despite the reduced number of iterations the 2nd variant (if ITER_MODE 
+is defined) is probably slightly more accurate since one adds first the small 
+terms and then the big terms while the first method adds first the big terms.
+
+
+vec.h -> general vector template "Vec" defining many vector operations and 
+  using a potential non-zero default size (useful for private variables 
+  in omp loops !). Note that not all functions work for all type of vectors, 
+  e.g. norm1 does not work if we have vectors of vectors of doubles etc.
+  shortcuts dvec, ivec, cvec for vectors of double, int, char are also defined.
+  There is no conflict with the standard vector template of C++ due to 
+  different names. 
+
+
+matrix_simple.h -> simple matrix class using vec.h for rows with certain 
+  operations: +,-,*,/ for matrices "/" -> solution of linear systems with 
+  the gaussian algorithm
+
+Note that vec.h and matrix_simple.h do not contain openmp code. 
+
+Other files *.h: 
+
+filesize.h
+net_mattest.h
+quicksort_nonpermut.h
+quicksort_page.h
+read_ascii.h
+utf_string.h
+
+represent usefull libraries for certain things.
+
+(iii) *.sh scripts:
+
+compile.sh -> compile scripts 
+
+divers run*.sh scripts:
+run_omp.sh
+run.sh
+run_test_omp.sh
+run_test.sh
+
+these scripts take 2 or 3 parameters: network file name, group node file name, 
+group name file name (the latter is optional).
+The network file name may be of binary format (this will be automatically 
+recognized by the file structure) that can be created by net_bin_trans.cc from 
+the ascii format. 
+Once the run-script has run it produces a lot of of output files described in 
+detail in README_filenames.
+
+
+(iv) example network and groupfiles for testing purpose:
+testnet.dat_reduce -> example network in ascii format (very small network)
+  fileformat: first two lines/values => number of nodes and number of links
+  then many lines for links:
+    two values per line: start_node, target_node 
+  (here nodes start from 1)
+  or if macro USE_PROBS is defined: 
+    three values per line: start_node, target_node, transition_probability
+  (no verification is done if probabilities are correctly normalized but 
+  there is a function in the network class that allows for later manual 
+  renormalization).
+  The network ascii file format can be transformed to bin format by 
+  net_bin_trans.cc (using the command "./net_bin_trans.out network file name").
+
+testgroup.nodes -> example group node file
+  fileformat: first line/value: dimension of reduced Google matrix 
+  further lines/values: list of nodes in the reduced group; the number 
+  of members in this list must correspond to the first value in this file, 
+  i.e. if there are Nr nodes the files must have Nr+1 integer entries being: 
+  Nr and then the list of Nr group nodes (here nodes start from 0, i.e. 
+  node 5 here corresonds to node 6 in ascii network file).
+
+testgroup.names -> example group name file
+  simple list for Nr group names (here NO first line with number !). 
+  each line = one name which may contain spaces
+  This file is typically optional and used for convenience to have nodes names 
+  in the G*.dat files.
+

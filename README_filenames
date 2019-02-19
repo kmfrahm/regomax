@@ -1,0 +1,136 @@
+Signification of output data files:
+-----------------------------------
+
+1) G-matrix files for different variants of reduced Google matrix
+with extension G*.dat
+
+
+(i) Name format: GXX_NETWORK_GROUPNAME_Nr.dat
+
+with XX=I, pr, qr, R, rr, rrplusGqr for 6 G-matrix variants (see below in 
+(iii) for explanations).
+
+NETWORK = name of used basis network, e.g. testnet for the example network 
+provided here 
+
+GROUPNAME = name of group of nodes used, e.g. testgroup for the testgroup 
+files provided here
+
+Nr = matrix dimension (of the reduced Google matrices), e.g. 40 for testgroup
+
+(ii) Content format: 
+There are 5 columns with each line representing one matrix element G(i,j)
+The columns are: i, j, value of G(i,j), name of node i, name of node j
+(the two name columns are optionnal and only present if a testgroup.name 
+file is provided, "names" may contain spaces) all separated by 
+tab-symbols ("\t" in C) and eventual additional spaces. Due to the 
+tab-symbols one can access a column "p" (p=1,2,3,4 or 5) by the command:
+cut GXX_NETWORK_GROUPNAME_Nr.dat -f p
+The index j is moving faster with line number of file. The blocks 
+corresponding to one value of i ("one matrix row") are separated by an 
+empty line.
+
+(iii) Signification of different G-matrix variants:
+
+The names GR etc. correspond (mostly) to the definitions of the paper:
+Eur. Phys. J. B (2016) 89: 269, see also: arXiv:1609.01948 [cs.SI] (2016).
+
+in detail:
+Grr is defined as the 11-Block of eq. (3) of the above paper and 
+  corresponds to the direct links inside the group of nodes. 
+GR is the full reduced Google matrix given by eqs. (8) and (16). 
+Gpr is the main projector part given by eq. (17).
+Gqr is the given by eq. (18).
+GI = Gpr + Gqr is the full "indirect" or Interaction contribution, also given 
+  by the second term of second equation in (8).
+GrrplusGqr is the renormalized effective Google matrix obtained from the 
+  sum of Grr and Gqr but only using non-diagonal terms of Gqr (the large 
+  diagonal elements of Gqr are not taken into account here). Eventual negative 
+  elements are made positive and afterwards the columns are sum normalized 
+  such that GrrplusGqr will have the symmetries of a Google matrix.
+
+
+2) Gmatrix files with extensions G*.mat:
+
+(i) Name format: GXX_NETWORK_GROUPNAME_Nr.mat
+similar as above.
+
+(ii) Content format: 
+1st line: => Nr^2
+2nd line: => Nr
+further lines all matrix elements G(i,j)
+with i=1,...,Nr outer loop and j=1,...,Nr inner loop 
+(i.e. Nr lines in file for first row of G, than Nr lines for second row etc.).
+
+These files are typically used as input for other programs, e.g. 
+to create density plot files etc.
+
+
+3) pagerank files: 
+
+(i) Name fomat: pagerank_YYYY_GROUPNAME_NETWORK_ALPHA.dat
+with GROUPNAME and NETWORK as above, ALPHA=0.15 = 1-damping factor 
+with damping factor = 0.85).
+YYYY corresponds to:
+"full" => full PageRank vector of the NETWORK
+"left" => left eigenvector of G_{ss} (see page 4, first column, last paragraph 
+	of above paper for explanations).
+"right" => right eigenvector of G_{ss}; note that the latter two were crucial 
+	to compute GR etc. according to eqs. (12) to (18).
+"small" => the PageRank vector of the reduced Google matrix GR
+"GrrplusGqr" => the PageRank vector of the effective Google matrix GrrplusGqr
+	as explained above, the latter two were directly computed by the 
+	powermethod using the small reduced matrices
+
+(ii) Content format:
+first line: "# size =    <size_of_vector>
+further lines: three columns and the lines are ordered 
+according to K-index of each vector (i.e. first line => largest value 
+of vector etc.).
+1st column = K-index (note in the file K-index starts with 0 and 
+  not 1), 
+2nd column = the value of the vector
+3rd column = original node index (also starting with 0)
+
+In order to limit file size for larger networks only the first 10000 
+elements are shown completed. Above 10000 only 100 values (in constant 
+density in log-representation) are shown per "factor of 10", i.e. 100 values 
+between 10^4 and 10^5, further 100 values between 10^5 and 10^6 etc.
+Here the value of 10000 correspond to the input parameter "print_number" and 
+100 to "ten_number" in net_greduced.cc and both values are the default values 
+used in the run*.sh scripts.
+
+Note these files do not contain tab symbols (since there are only numbers and 
+no text parts with spaces). All columns are separated by spaces.
+
+
+4) subpagerank files
+
+(i) Name format: similar as above but name starting with "subpagerank" 
+instead of "pagerank"
+
+(ii) Content format: These file give the different (pagerank and other) 
+vectors but only in the small space of reduced nodes with 6 columns which 
+ares explained in second lines of each each file:
+# reduced index, value, normalized value, original index, K index, name
+For the three cases full, left and right the normalization changes from big 
+to small network. For left and right the shown vectors are not \psi_L/R 
+(which are actually "0" on reduced nodes !) but the related vectors 
+in small space given by 
+a=G_{rs}\psi_R and b=G_{sr}^T\psi_L such that G_{pr}=ab^T 
+according to eq. (17) of above paper. Here G_{rs} and G_{sr} are the 
+12 and 21 blocks in (3).
+For small and GrrplusGqr "small" and "big" space are the same (i.e. only 
+"small" space).
+
+
+5) INPUT* and OUTPUT* 
+input and output files used by the scripts "run*.sh". The OUTPUT* files also 
+contain information about the leading eigenvalue lambda_c of G_{ss} (typically 
+very close to unity) for the left and right eigenvectors \psi_L,R. Simply 
+use the command: "grep lambda OUTPUT*" to obtain the corresponding value(s).
+Note that lambda_c is calculated twice during the computation of \psi_L and 
+\psi_R. For technical reasons the computation by \psi_R is more precise (due 
+to direct computation of 1-\lambda_c<<1). 
+The output of "grep lambda OUTPUT*" also provides the small numerical 
+difference betwenn both values. 
