@@ -13,7 +13,7 @@ description of this algortihm are given in the following references:
   arXiv:1612.07920 [cs.SI] (2016). 
   
 Example application on bank network of wikipedia:
-D,Demidov, K.M.Frahm, and D.L.Shepelyansky What is the central bank of Wikipedia ? arxiv:1902.07920 [cs.SI] (2019).
+D. Demidov, K.M. Frahm, and D.L. Shepelyansky What is the central bank of Wikipedia ? arxiv:1902.07920 [cs.SI] (2019).
 http://www.quantware.ups-tlse.fr/QWLIB/wikibanknet/index.html
 
 Network data of Wikipedia 2013 (different language editions):
