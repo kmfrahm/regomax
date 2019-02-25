@@ -11,7 +11,15 @@ description of this algortihm are given in the following references:
   Multi-cultural Wikipedia mining of geopolitics interactions leveraging 
   reduced Google matrix analysis, Phys. Lett. A {\bf 381} (2017) 2677,
   arXiv:1612.07920 [cs.SI] (2016). 
+  
+Example application on bank network of wikipedia:
+D,Demidov, K.M.Frahm, and D.L.Shepelyansky What is the central bank of Wikipedia ? arxiv:1902.07920 [cs.SI] (2019).
+http://www.quantware.ups-tlse.fr/QWLIB/wikibanknet/index.html
 
+Network data of Wikipedia 2013 (different language editions):
+http://www.quantware.ups-tlse.fr/QWLIB/topwikipeople/
+
+-------------------------------------------------------
 
 To compile one needs simply to use the command:
 ./compile.sh
